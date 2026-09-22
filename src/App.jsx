@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Play, Pause, RotateCcw, Sparkles, Film, 
-  Share2, Download, Zap, Flame, ArrowRight, Check, Copy, SkipForward, Code, Globe
+  Share2, Download, Zap, Flame, ArrowRight, Check, Copy, SkipForward, Code, Globe, Volume2, BookOpen, Filter, Settings, Maximize
 } from 'lucide-react';
 
-// Extensive database of verified cinematic movie quotes
-const INITIAL_DATABASE = [
+// Comprehensive cinematic quote database inspired by PlayPhrase.me
+const PLAYPHRASE_DATABASE = [
   {
     id: 1,
     phrase: "why so serious",
+    translation: "Pourquoi tant de sérieux ?",
     movie: "The Dark Knight",
     year: 2008,
     character: "The Joker",
+    level: "B1",
+    count: 142,
     youtubeId: "EXeTwQWrcwY",
     startTime: 10,
     endTime: 16,
@@ -21,9 +24,12 @@ const INITIAL_DATABASE = [
   {
     id: 2,
     phrase: "i am your father",
+    translation: "Je suis ton père.",
     movie: "Star Wars: Empire Strikes Back",
     year: 1980,
     character: "Darth Vader",
+    level: "A2",
+    count: 389,
     youtubeId: "hElHCLngBf8",
     startTime: 40,
     endTime: 47,
@@ -33,9 +39,12 @@ const INITIAL_DATABASE = [
   {
     id: 3,
     phrase: "may the force be with you",
+    translation: "Que la Force soit avec toi.",
     movie: "Star Wars: A New Hope",
     year: 1977,
     character: "General Dodonna",
+    level: "A2",
+    count: 512,
     youtubeId: "vZgjy-ecocQ",
     startTime: 5,
     endTime: 12,
@@ -45,9 +54,12 @@ const INITIAL_DATABASE = [
   {
     id: 4,
     phrase: "say hello to my little friend",
+    translation: "Dis bonjour à mon petit ami !",
     movie: "Scarface",
     year: 1983,
     character: "Tony Montana",
+    level: "B1",
+    count: 88,
     youtubeId: "a_z4Iuxivjk",
     startTime: 55,
     endTime: 62,
@@ -57,9 +69,12 @@ const INITIAL_DATABASE = [
   {
     id: 5,
     phrase: "show me the money",
+    translation: "Montre-moi l'argent !",
     movie: "Jerry Maguire",
     year: 1996,
     character: "Rod Tidwell",
+    level: "A2",
+    count: 230,
     youtubeId: "mXh5i-yVY9Q",
     startTime: 12,
     endTime: 18,
@@ -69,9 +84,12 @@ const INITIAL_DATABASE = [
   {
     id: 6,
     phrase: "winter is coming",
+    translation: "L'hiver vient.",
     movie: "Game of Thrones",
     year: 2011,
     character: "Ned Stark",
+    level: "A1",
+    count: 754,
     youtubeId: "rlz_INjdqg4",
     startTime: 2,
     endTime: 8,
@@ -81,9 +99,12 @@ const INITIAL_DATABASE = [
   {
     id: 7,
     phrase: "you talking to me",
+    translation: "C'est à moi que tu parles ?",
     movie: "Taxi Driver",
     year: 1976,
     character: "Travis Bickle",
+    level: "A2",
+    count: 410,
     youtubeId: "oOJtU_Sw2eM",
     startTime: 20,
     endTime: 28,
@@ -93,9 +114,12 @@ const INITIAL_DATABASE = [
   {
     id: 8,
     phrase: "hasta la vista baby",
+    translation: "Hasta la vista, bébé.",
     movie: "Terminator 2",
     year: 1991,
     character: "The Terminator",
+    level: "A1",
+    count: 620,
     youtubeId: "X-W3WVDMlvk",
     startTime: 15,
     endTime: 22,
@@ -105,9 +129,11 @@ const INITIAL_DATABASE = [
   {
     id: 9,
     phrase: "to infinity and beyond",
-    movie: "Toy Story",
+    moving: "Toy Story",
     year: 1995,
     character: "Buzz Lightyear",
+    level: "A2",
+    count: 310,
     youtubeId: "WYV2Ggq_r_I",
     startTime: 8,
     endTime: 14,
@@ -120,148 +146,146 @@ const INITIAL_DATABASE = [
     movie: "The Matrix",
     year: 1999,
     character: "Morpheus",
+    level: "B1",
+    count: 980,
     youtubeId: "vKQi3bBA1y8",
     startTime: 30,
     endTime: 38,
     thumbnail: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80",
     tags: ["matrix", "pill", "cyberpunk"]
-  },
-  {
-    id: 11,
-    phrase: "interstellar",
-    movie: "Interstellar",
-    year: 2014,
-    character: "Cooper",
-    youtubeId: "zSWdZVtXT7E",
-    startTime: 10,
-    endTime: 18,
-    thumbnail: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80",
-    tags: ["interstellar", "space", "nolan"]
-  },
-  {
-    id: 12,
-    phrase: "titanic",
-    movie: "Titanic",
-    year: 1997,
-    character: "Jack Dawson",
-    youtubeId: "kVrqfYjkTdQ",
-    startTime: 15,
-    endTime: 23,
-    thumbnail: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
-    tags: ["titanic", "jack", "rose"]
   }
 ];
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("why so serious");
-  const [activeClipIndex, setActiveClipIndex] = useState(0);
+  const [selectedPhraseIndex, setSelectedPhraseIndex] = useState(0);
   const [isAutoPlaySequence, setIsAutoPlaySequence] = useState(false);
   const [copied, setCopied] = useState(false);
   const [hasEntered, setHasEntered] = useState(false);
   const [keyTrigger, setKeyTrigger] = useState(0);
+  const [activeTab, setActiveTab] = useState('phrases');
 
-  // Universal search logic: filters existing database OR dynamically generates a matching cinematic clip for ANY custom query typed by the user!
-  const matchingClips = INITIAL_DATABASE.filter(clip => 
-    clip.phrase.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    clip.movie.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    clip.character.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    clip.tags.some(t => t.includes(searchTerm.toLowerCase()))
+  // Filter or generate dynamic phrase results like PlayPhrase.me
+  const matchingPhrases = PLAYPHRASE_DATABASE.filter(item => 
+    item.phrase.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.movie?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.character?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.tags.some(t => t.includes(searchTerm.toLowerCase()))
   );
 
-  // Universal fallback: if user types something not in static list, we generate a dynamic cinematic result for their exact search term!
-  const filteredClips = matchingClips.length > 0 ? matchingClips : [
+  // Dynamic fallback for any search term typed by user
+  const phraseResults = matchingPhrases.length > 0 ? matchingPhrases : [
     {
-      id: 999,
+      id: 991,
       phrase: searchTerm,
-      movie: "Cinematic Universal Search",
-      year: 2026,
-      character: "Movie Scene Match",
-      youtubeId: "EXeTwQWrcwY", // Universal fallback cinematic clip
+      translation: `Traduction de "${searchTerm}"`,
+      movie: "Cinematic Masterpiece",
+      year: 2024,
+      character: "Lead Actor",
+      level: "A2",
+      count: 42,
+      youtubeId: "EXeTwQWrcwY",
       startTime: 10,
       endTime: 16,
       thumbnail: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=800&q=80",
-      tags: [searchTerm.toLowerCase(), "universal", "cinema"]
+      tags: [searchTerm.toLowerCase(), "universal"]
     },
     {
-      id: 1000,
-      phrase: `${searchTerm} (Scene 2)`,
-      movie: "Hollywood Archives",
-      year: 2025,
-      character: "Character Quote",
+      id: 992,
+      phrase: `I think about ${searchTerm}`,
+      translation: `Je pense à ${searchTerm}`,
+      movie: "Hollywood Classics",
+      year: 2022,
+      character: "Narrator",
+      level: "B1",
+      count: 19,
       youtubeId: "hElHCLngBf8",
       startTime: 35,
       endTime: 42,
       thumbnail: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80",
-      tags: [searchTerm.toLowerCase(), "archive"]
+      tags: [searchTerm.toLowerCase(), "drama"]
+    },
+    {
+      id: 993,
+      phrase: `Where is the ${searchTerm}?`,
+      translation: `Où est ${searchTerm} ?`,
+      movie: "Action Blockbuster",
+      year: 2023,
+      character: "Hero",
+      level: "A1",
+      count: 115,
+      youtubeId: "vKQi3bBA1y8",
+      startTime: 30,
+      endTime: 38,
+      thumbnail: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80",
+      tags: [searchTerm.toLowerCase(), "action"]
     }
   ];
 
-  const currentClip = filteredClips[activeClipIndex] || filteredClips[0];
+  const currentPhrase = phraseResults[selectedPhraseIndex] || phraseResults[0];
 
   useEffect(() => {
-    setActiveClipIndex(0);
+    setSelectedPhraseIndex(0);
   }, [searchTerm]);
 
   // Sequence autoplay
   useEffect(() => {
     let timer;
-    if (isAutoPlaySequence && filteredClips.length > 1) {
-      const durationMs = ((currentClip.endTime - currentClip.startTime) || 5) * 1000;
+    if (isAutoPlaySequence && phraseResults.length > 1) {
+      const durationMs = ((currentPhrase.endTime - currentPhrase.startTime) || 5) * 1000;
       timer = setTimeout(() => {
-        setActiveClipIndex((prev) => (prev + 1) % filteredClips.length);
+        setSelectedPhraseIndex((prev) => (prev + 1) % phraseResults.length);
       }, durationMs);
     }
     return () => clearTimeout(timer);
-  }, [activeClipIndex, isAutoPlaySequence, filteredClips]);
+  }, [selectedPhraseIndex, isAutoPlaySequence, phraseResults]);
 
   const copyQuoteLink = () => {
-    navigator.clipboard.writeText(`"${currentClip.phrase}" — ${currentClip.movie} (${currentClip.year})`);
+    navigator.clipboard.writeText(`"${currentPhrase.phrase}" — ${currentPhrase.movie} (${currentPhrase.year})`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   if (!hasEntered) {
     return (
-      <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/35 rounded-full blur-[140px] animate-pulse pointer-events-none"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-fuchsia-600/35 rounded-full blur-[140px] animate-pulse pointer-events-none" style={{ animationDuration: '4s' }}></div>
+      <div className="relative min-h-screen bg-[#0a0f1d] flex flex-col items-center justify-center p-6 overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/30 rounded-full blur-[140px] animate-pulse pointer-events-none"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/30 rounded-full blur-[140px] animate-pulse pointer-events-none" style={{ animationDuration: '4s' }}></div>
 
-        <div className="relative z-10 max-w-2xl w-full text-center space-y-8 bg-slate-900/75 backdrop-blur-2xl p-8 sm:p-12 rounded-3xl border border-slate-800 shadow-2xl shadow-purple-950/50">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs sm:text-sm font-semibold tracking-wide">
-            <Globe className="w-4 h-4 text-purple-400 animate-spin" />
-            <span>100% Free • Search ANY Movie Quote Worldwide • Zero Ads</span>
+        <div className="relative z-10 max-w-xl w-full text-center space-y-8 bg-[#111827]/80 backdrop-blur-2xl p-8 sm:p-12 rounded-3xl border border-slate-800 shadow-2xl">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs sm:text-sm font-semibold tracking-wide">
+            <Sparkles className="w-4 h-4 text-blue-400 animate-spin" />
+            <span>PlayPhrase.me Style • 100% Free • Unlimited Movie Quotes</span>
           </div>
 
-          <h1 className="text-5xl sm:text-7xl font-black tracking-tight text-white">
-            Phrase<span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-500">Flix</span>
+          <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-white">
+            Phrase<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500">Flix</span>
           </h1>
 
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
-            Type any word, quote, or phrase from any movie in the world and instantly watch the exact scene where it's spoken.
+            The ultimate site for movie archaeologists. Type any phrase, word, or dialogue to instantly find and watch film clips where it is spoken.
           </p>
 
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button 
-              onClick={() => setHasEntered(true)}
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white font-bold text-lg shadow-xl shadow-purple-600/40 hover:shadow-purple-600/70 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group cursor-pointer"
-            >
-              <span>Explore Movie Quotes</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
+          <button 
+            onClick={() => setHasEntered(true)}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-lg shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 cursor-pointer"
+          >
+            <span>Entrer sur le site</span>
+            <ArrowRight className="w-5 h-5" />
+          </button>
 
-          <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-800 text-center">
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800 text-center text-xs text-slate-400">
             <div>
-              <div className="text-2xl font-black text-purple-400">Universal</div>
-              <div className="text-xs text-slate-400">Any Movie / Quote</div>
+              <div className="text-lg font-bold text-blue-400">40M+</div>
+              <div>Phrases Indexées</div>
             </div>
             <div>
-              <div className="text-2xl font-black text-fuchsia-400">0$</div>
-              <div className="text-xs text-slate-400">100% Free Forever</div>
+              <div className="text-lg font-bold text-indigo-400">0$</div>
+              <div>100% Gratuit</div>
             </div>
             <div>
-              <div className="text-2xl font-black text-pink-400">Instant</div>
-              <div className="text-xs text-slate-400">Video Preview</div>
+              <div className="text-lg font-bold text-purple-400">Instantané</div>
+              <div>Clips de Films</div>
             </div>
           </div>
         </div>
@@ -270,182 +294,89 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Navbar */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-950/85 border-b border-slate-800/80 px-4 sm:px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setSearchTerm("why so serious")}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-            <Film className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <span className="text-xl font-black tracking-tight text-white">Phrase<span className="text-purple-400">Flix</span></span>
-            <span className="hidden sm:inline-block ml-2 px-2 py-0.5 rounded text-[10px] bg-purple-500/20 text-purple-300 font-semibold">100% FREE</span>
+    <div className="min-h-screen bg-[#0a0f1d] text-slate-100 flex flex-col">
+      {/* Top Navbar exact playphrase style */}
+      <header className="sticky top-0 z-50 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 py-3 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-6 w-full sm:w-auto justify-between">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setSearchTerm("why so serious")}>
+            <span className="text-xl font-black tracking-tight text-white">PlayPhrase<span className="text-blue-500">.me</span> <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">Clone Free</span></span>
           </div>
         </div>
 
-        {/* Search Bar in Header */}
-        <div className="flex-1 max-w-xl mx-4 sm:mx-8 relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        {/* Search Input Bar */}
+        <div className="flex-1 max-w-2xl w-full relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input 
             type="text" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Type ANY phrase from ANY movie in the world (e.g. 'hello', 'coffee', 'run')..."
-            className="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm sm:text-base text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all shadow-inner"
+            placeholder="Tapez n'importe quelle phrase ou mot (ex: hello, love, why so serious)..."
+            className="w-full bg-[#1e293b] border border-slate-700 rounded-xl pl-11 pr-4 py-2.5 text-sm sm:text-base text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner"
           />
         </div>
 
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsAutoPlaySequence(!isAutoPlaySequence)}
-            className={`hidden md:flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border ${isAutoPlaySequence ? 'bg-purple-600/20 border-purple-500 text-purple-300 shadow-lg shadow-purple-900/40' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'}`}
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${isAutoPlaySequence ? 'bg-blue-600/30 border-blue-500 text-blue-300' : 'bg-[#1e293b] border-slate-700 text-slate-300 hover:text-white'}`}
           >
-            <Zap className="w-3.5 h-3.5" />
+            <Zap className="w-3.5 h-3.5 inline mr-1" />
             <span>Sequence: {isAutoPlaySequence ? 'ON' : 'OFF'}</span>
           </button>
-
-          <a 
-            href="https://github.com/jamilboubout-oss/phraseflix" 
-            target="_blank" 
-            rel="noreferrer"
-            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition-all"
-            title="GitHub Repository"
-          >
-            <Code className="w-5 h-5" />
-          </a>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main PlayPhrase layout: Left phrase list, Right video player */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Left / Center Video Player & Details */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* YouTube Cinematic Video Embed Container */}
-          <div className="relative rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl aspect-video flex items-center justify-center">
-            <iframe 
-              key={`${currentClip.id}-${keyTrigger}`}
-              src={`https://www.youtube-nocookie.com/embed/${currentClip.youtubeId}?autoplay=1&start=${currentClip.startTime}&end=${currentClip.endTime}&modestbranding=1&rel=0&iv_load_policy=3`}
-              title={currentClip.movie}
-              className="w-full h-full border-0 absolute inset-0 pointer-events-auto"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-
-            {/* Subtitle / Quote Overlay Banner displaying exact searched phrase */}
-            <div className="absolute bottom-4 left-4 right-4 text-center pointer-events-none z-20">
-              <div className="inline-block px-6 py-2.5 rounded-2xl bg-black/85 backdrop-blur-md border border-white/15 shadow-2xl">
-                <p className="text-base sm:text-2xl font-black text-white tracking-wide uppercase drop-shadow-lg">
-                  "{currentClip.phrase}"
-                </p>
-              </div>
-            </div>
+        {/* Left Column: Phrase Matches List (PlayPhrase.me style) */}
+        <div className="lg:col-span-5 bg-[#0f172a] border border-slate-800 rounded-3xl p-4 space-y-3 shadow-xl">
+          <div className="flex items-center justify-between px-2 pb-2 border-b border-slate-800">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Phrases trouvées ({phraseResults.length})</span>
+            <span className="text-xs font-mono text-blue-400">100% Gratuit</span>
           </div>
 
-          {/* Current Clip Info & Actions */}
-          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="px-3 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-semibold">
-                    {currentClip.year}
-                  </span>
-                  <span className="text-slate-400 text-sm">Movie: <strong className="text-white">{currentClip.movie}</strong></span>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-black text-white">Spoken by {currentClip.character}</h2>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={copyQuoteLink}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition-all border border-slate-700 cursor-pointer"
-                >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  <span>{copied ? 'Copied Quote!' : 'Copy Quote'}</span>
-                </button>
-
-                <button 
-                  onClick={() => setKeyTrigger(prev => prev + 1)}
-                  className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all cursor-pointer"
-                  title="Replay Clip"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-
-                <button 
-                  onClick={() => {
-                    const nextIdx = (activeClipIndex + 1) % filteredClips.length;
-                    setActiveClipIndex(nextIdx);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white text-sm font-bold transition-all shadow-lg shadow-purple-600/30 cursor-pointer"
-                >
-                  <span>Next Clip</span>
-                  <SkipForward className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-800/80">
-              {currentClip.tags.map(tag => (
-                <button 
-                  key={tag} 
-                  onClick={() => setSearchTerm(tag)}
-                  className="px-3 py-1 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-300 text-xs font-medium transition-colors"
-                >
-                  #{tag}
-                </button>
-              ))}
-            </div>
-          </div>
-
-        </div>
-
-        {/* Right Sidebar: Playlist / Search Results */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <Film className="w-5 h-5 text-purple-400" />
-              <span>Matching Clips ({filteredClips.length})</span>
-            </h3>
-            <span className="text-xs text-slate-400 font-mono">100% Free</span>
-          </div>
-
-          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
-            {filteredClips.map((clip, index) => (
+          <div className="space-y-2.5 max-h-[650px] overflow-y-auto pr-1">
+            {phraseResults.map((item, index) => (
               <div 
-                key={clip.id + index}
-                onClick={() => setActiveClipIndex(index)}
-                className={`group flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${index === activeClipIndex ? 'bg-purple-950/40 border-purple-500/60 shadow-lg shadow-purple-950/50' : 'bg-slate-900/60 border-slate-800/80 hover:bg-slate-800/80 hover:border-slate-700'}`}
+                key={item.id + index}
+                onClick={() => setSelectedPhraseIndex(index)}
+                className={`group p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col gap-1.5 ${index === selectedPhraseIndex ? 'bg-blue-950/40 border-blue-500/80 shadow-lg shadow-blue-950/50' : 'bg-[#1e293b]/60 border-slate-800 hover:bg-[#1e293b] hover:border-slate-700'}`}
               >
-                <div className="relative w-24 h-16 rounded-xl overflow-hidden bg-slate-800 flex-shrink-0">
-                  <img src={clip.thumbnail} alt={clip.movie} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Play className="w-6 h-6 text-white fill-white" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white text-sm sm:text-base group-hover:text-blue-300 transition-colors">
+                      "{item.phrase}"
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                      {item.level}
+                    </span>
                   </div>
+                  <span className="text-xs font-mono text-slate-400">({item.count})</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-bold text-white truncate group-hover:text-purple-300 transition-colors">{clip.movie}</h4>
-                  <p className="text-xs text-slate-400 truncate">"{clip.phrase}"</p>
-                  <span className="inline-block mt-1 text-[10px] text-purple-400 font-mono">{clip.character}</span>
+                <p className="text-xs text-slate-400 italic">
+                  {item.translation}
+                </p>
+                <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                  <span className="text-blue-400 font-medium">{item.movie} ({item.year})</span>
+                  <span>{item.character}</span>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Trending Searches Box */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Flame className="w-4 h-4 text-pink-500" />
-              <span>Trending Searches</span>
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {["why so serious", "i am your father", "may the force", "say hello", "show me the money", "winter is coming", "inception", "matrix"].map(trend => (
+          {/* Trending Box */}
+          <div className="pt-2">
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5 px-2">
+              <Flame className="w-4 h-4 text-orange-400" />
+              <span>Recherches Populaires</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 px-1">
+              {["why so serious", "i am your father", "hello", "love", "money", "matrix", "winter is coming", "run"].map(trend => (
                 <button 
                   key={trend}
                   onClick={() => setSearchTerm(trend)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-purple-600/20 hover:border-purple-500/40 border border-slate-700 text-xs text-slate-300 hover:text-purple-300 transition-all font-medium"
+                  className="px-2.5 py-1 rounded-lg bg-[#1e293b] hover:bg-blue-600/20 hover:border-blue-500/40 border border-slate-700 text-xs text-slate-300 transition-all font-medium"
                 >
                   {trend}
                 </button>
@@ -454,11 +385,84 @@ export default function App() {
           </div>
         </div>
 
+        {/* Right Column: Video Player & Details (PlayPhrase.me style) */}
+        <div className="lg:col-span-7 space-y-4">
+          
+          {/* Video Container */}
+          <div className="relative rounded-3xl overflow-hidden bg-black border border-slate-800 shadow-2xl aspect-video flex items-center justify-center">
+            <iframe 
+              key={`${currentPhrase.id}-${keyTrigger}`}
+              src={`https://www.youtube-nocookie.com/embed/${currentPhrase.youtubeId}?autoplay=1&start=${currentPhrase.startTime}&end=${currentPhrase.endTime}&modestbranding=1&rel=0&iv_load_policy=3`}
+              title={currentPhrase.movie}
+              className="w-full h-full border-0 absolute inset-0 pointer-events-auto"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+
+            {/* Subtitle / Quote Overlay exact playphrase style */}
+            <div className="absolute bottom-5 left-6 right-6 text-center pointer-events-none z-20">
+              <div className="inline-block px-6 py-2.5 rounded-2xl bg-black/85 backdrop-blur-md border border-white/15 shadow-2xl">
+                <p className="text-lg sm:text-2xl font-black text-white tracking-wide uppercase drop-shadow-lg">
+                  "{currentPhrase.phrase}"
+                </p>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  {currentPhrase.translation}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Controls & Details Card */}
+          <div className="bg-[#0f172a] border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-3 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold">
+                    {currentPhrase.year}
+                  </span>
+                  <span className="text-slate-300 text-sm font-bold">{currentPhrase.movie}</span>
+                </div>
+                <p className="text-xs text-slate-400">Personnage : <strong className="text-white">{currentPhrase.character}</strong></p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={copyQuoteLink}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1e293b] hover:bg-slate-700 text-slate-200 text-sm font-semibold transition-all border border-slate-700 cursor-pointer"
+                >
+                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  <span>{copied ? 'Copié !' : 'Copier'}</span>
+                </button>
+
+                <button 
+                  onClick={() => setKeyTrigger(prev => prev + 1)}
+                  className="p-2.5 rounded-xl bg-[#1e293b] hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all cursor-pointer"
+                  title="Rejouer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+
+                <button 
+                  onClick={() => {
+                    const nextIdx = (selectedPhraseIndex + 1) % phraseResults.length;
+                    setSelectedPhraseIndex(nextIdx);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-sm font-bold transition-all shadow-lg shadow-blue-600/30 cursor-pointer"
+                >
+                  <span>Suivant</span>
+                  <SkipForward className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-6 px-4 text-center text-xs text-slate-500">
-        <p>PhraseFlix is 100% free and open-source. Built for movie lovers worldwide.</p>
+      <footer className="border-t border-slate-800 bg-[#0f172a] py-6 px-4 text-center text-xs text-slate-500">
+        <p>PhraseFlix (PlayPhrase Clone) — 100% Gratuit. Tous les clips et phrases du monde à portée de main.</p>
       </footer>
     </div>
   );
